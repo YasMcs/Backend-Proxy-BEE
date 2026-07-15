@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import moderationRouter from './routes/moderationRoutes.ts';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -15,57 +16,7 @@ app.get('/api/salud', (req, res) => {
   res.json({ estado: 'activo' });
 });
 
-app.post('/api/moderar', async (req, res) => {
-  const { reporte } = req.body;
-  if (!reporte || typeof reporte !== 'string') {
-    res.status(400).json({ error: 'El campo reporte es obligatorio y debe ser texto.' });
-    return;
-  }
-
-  try {
-    const moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({ input: reporte })
-    });
-
-    if (!moderationResponse.ok) {
-      res.status(500).json({ error: 'Error al comunicarse con el servicio de moderación.' });
-      return;
-    }
-
-    const data: any = await moderationResponse.json();
-    const veredicto = data.results[0];
-
-    const microserviceResponse = await fetch(process.env.MICROSERVICE_URL || 'http://localhost:4000/api/evaluar', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        reporte,
-        veredicto: {
-          flagged: veredicto.flagged,
-          categories: veredicto.categories
-        }
-      })
-    });
-
-    if (!microserviceResponse.ok) {
-      res.status(500).json({ error: 'Error en el microservicio de evaluación.' });
-      return;
-    }
-
-    const result: any = await microserviceResponse.json();
-    res.json(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error interno en el servidor de moderación.' });
-  }
-});
+app.use('/api', moderationRouter);
 
 app.listen(port, () => {
   console.log(`Servidor corriendo en puerto ${port}`);

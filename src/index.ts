@@ -40,14 +40,29 @@ app.post('/api/moderar', async (req, res) => {
     const data: any = await moderationResponse.json();
     const veredicto = data.results[0];
 
-    res.json({
-      reporte,
-      veredicto: {
-        flagged: veredicto.flagged,
-        categories: veredicto.categories
-      }
+    const microserviceResponse = await fetch(process.env.MICROSERVICE_URL || 'http://localhost:4000/api/evaluar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        reporte,
+        veredicto: {
+          flagged: veredicto.flagged,
+          categories: veredicto.categories
+        }
+      })
     });
+
+    if (!microserviceResponse.ok) {
+      res.status(500).json({ error: 'Error en el microservicio de evaluación.' });
+      return;
+    }
+
+    const result: any = await microserviceResponse.json();
+    res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Error interno en el servidor de moderación.' });
   }
 });

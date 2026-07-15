@@ -17,7 +17,7 @@ export class ModerationService {
     return data.results[0];
   }
 
-  async evaluateReport(reporte: string, veredicto: any): Promise<any> {
+  async evaluateReport(reporte: string, veredicto: any, tipo: string): Promise<any> {
     const microserviceResponse = await fetch(process.env.MICROSERVICE_URL || 'http://localhost:4000/api/evaluar', {
       method: 'POST',
       headers: {
@@ -25,6 +25,7 @@ export class ModerationService {
       },
       body: JSON.stringify({
         reporte,
+        tipo,
         veredicto: {
           flagged: veredicto.flagged,
           categories: veredicto.categories
@@ -37,5 +38,37 @@ export class ModerationService {
     }
 
     return await microserviceResponse.json();
+  }
+
+  async getApprovedReports(): Promise<any> {
+    const microserviceBase = (process.env.MICROSERVICE_URL || 'http://localhost:4000/api/evaluar').replace('/api/evaluar', '');
+    const response = await fetch(`${microserviceBase}/api/reportes`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al consultar las sugerencias aprobadas.');
+    }
+
+    return await response.json();
+  }
+
+  async likeReport(id: string): Promise<any> {
+    const microserviceBase = (process.env.MICROSERVICE_URL || 'http://localhost:4000/api/evaluar').replace('/api/evaluar', '');
+    const response = await fetch(`${microserviceBase}/api/reportes/${id}/like`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al dar like a la sugerencia.');
+    }
+
+    return await response.json();
   }
 }

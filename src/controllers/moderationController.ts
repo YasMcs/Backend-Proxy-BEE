@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { ModerationService } from '../services/moderationService.ts';
+import { ModerationService } from '../services/moderationService.js';
 
 const moderationService = new ModerationService();
 

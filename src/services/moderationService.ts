@@ -40,9 +40,10 @@ export class ModerationService {
     return await microserviceResponse.json();
   }
 
-  async getApprovedReports(): Promise<any> {
+  async getApprovedReports(tipo?: string): Promise<any> {
     const microserviceBase = (process.env.MICROSERVICE_URL || 'http://localhost:4000/api/evaluar').replace('/api/evaluar', '');
-    const response = await fetch(`${microserviceBase}/api/reportes`, {
+    const url = tipo ? `${microserviceBase}/api/reportes?tipo=${tipo}` : `${microserviceBase}/api/reportes`;
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'

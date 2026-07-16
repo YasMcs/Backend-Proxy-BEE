@@ -25,8 +25,9 @@ export class ModerationController {
   }
 
   async obtenerAprobados(req: Request, res: Response): Promise<void> {
+    const { tipo } = req.query;
     try {
-      const result = await moderationService.getApprovedReports();
+      const result = await moderationService.getApprovedReports(tipo as string);
       res.json(result);
     } catch (error: any) {
       console.error(error);
